@@ -1,0 +1,66 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Script File
+//
+//      File: ELF Com .arc
+//   Authors: Ch1p
+//   Version: 0.01
+//   Purpose: ELF Com. arc file 
+//  Category: galgame
+//   History: 
+//------------------------------------------------
+
+#define HEADER_SIZE 0x110
+#define BLOCK_SUM_SIZE 0x4
+
+typedef struct _HEADER
+{
+    char fileName[0x104];
+    unsigned int inFileLength;
+    unsigned int rawFileLength;
+    unsigned int fileOffset;
+}HEADER <read=getDecodeStr, bgcolor=0x00FF00>;
+
+typedef struct _CONTENT(int num)
+{
+    char Data[num];
+}CONTENT;
+
+typedef struct _START
+{
+    int size;
+}START;
+
+typedef struct _CONTENTS(HEADER headers[], int num)
+{
+    local int i <hidden=true>;
+    for (i = 0; i < num; i++)
+    {
+        CONTENT data(headers[i].inFileLength);
+    }
+}CONTENTS;
+
+typedef struct arcFile
+{
+    local int i;
+    START startNum;
+    BigEndian();
+    HEADER headers[startNum.size];
+    LittleEndian();
+    CONTENTS contents(headers, startNum.size);
+}ARCFILE;
+
+string getDecodeStr(HEADER& header)
+{
+    int length = Strlen(header.fileName);
+    char trueName[length + 1];
+    local int i <hidden=true>;
+    int tempNum = length + 1;
+    for (i = 0; i < length; i++)
+    {
+        trueName[i] = (header.fileName[i] - tempNum--);
+    }
+    return trueName;
+}
+//-------------------------
+
+ARCFILE file;
